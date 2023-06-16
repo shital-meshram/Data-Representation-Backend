@@ -1,0 +1,311 @@
+package com.cctns.fir.dao;
+
+import java.lang.reflect.Array;
+import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.ResourceBundle;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.ResultSetExtractor;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.stereotype.Repository;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import com.cctns.fir.bean.DistrictBean;
+import com.cctns.fir.bean.FIRChartDto;
+import com.cctns.fir.bean.FIRDetailsMapper;
+import com.cctns.fir.bean.FirDetailsResponse;
+import com.cctns.fir.bean.FirStatus;
+import com.cctns.fir.bean.MajorHeadBean;
+import com.cctns.fir.bean.PsBean;
+import com.cctns.fir.bean.StateBean;
+import com.cctns.fir.bean.User;
+import com.cctns.fir.bean.UserRowMapper;
+
+@Repository
+public class FirDetailsDaoImpl implements IFirDao {
+	
+	@Autowired
+	private NamedParameterJdbcTemplate namedJdbcTemplate;
+	private Map<String, String> parameter = new HashMap<>();
+
+	ResourceBundle resourceBundele = ResourceBundle.getBundle("sql");
+	@Override
+	public List<FirDetailsResponse> getFirDetails() {
+		 String queryString = resourceBundele.getString("get.fir.details");
+		 System.out.println("queryString = "+ queryString);
+		   List<FirDetailsResponse> result = namedJdbcTemplate.query(queryString,
+		         BeanPropertyRowMapper.newInstance(FirDetailsResponse.class));
+		   System.out.println(result);
+		   
+		   return result;
+	}
+
+	@Override
+	public List<FirDetailsResponse> getFirDetailsByDate(Integer stateCd, Integer districtCd, Integer psCd, String startDate, String endDate) {
+		String queryString = resourceBundele.getString("get.fir.sort.bydate");
+		 
+		 System.out.println("start date : "+ startDate);
+		 System.out.println("end date : "+ endDate);
+		 parameter.put("state_cd", stateCd.toString());
+		 parameter.put("district_cd", districtCd.toString());
+		 parameter.put("ps_cd", psCd.toString());
+		 parameter.put("startDate", startDate);
+		 parameter.put("endDate", endDate);
+		 
+		   List<FirDetailsResponse> result = namedJdbcTemplate.query(queryString, parameter, BeanPropertyRowMapper.newInstance(FirDetailsResponse.class));
+		   System.out.println(result);
+		   
+		   return result;
+	}
+	
+	
+	@Override
+	public  List<FIRChartDto> getFirChartByDate(Integer stateCd, Integer districtCd, Integer psCd, String startDate, String endDate) {
+		String queryString = resourceBundele.getString("get.fir.count.bydistrict");
+		 //List<FIRChartDto> firchartDto= new ArrayList<FIRChartDto>();
+		 //FIRChartDto chartDto = new FIRChartDto();
+		 System.out.println(queryString);
+		 //System.out.println("end date : "+ endDate);
+		 parameter.put("state_cd", stateCd.toString());
+		 
+		 
+		 
+		 //parameter.put("ps_cd", psCd.toString());
+		 parameter.put("startDate", startDate);
+		 parameter.put("endDate", endDate);
+		 List<FIRChartDto> firchartDto = namedJdbcTemplate.query(queryString, parameter, BeanPropertyRowMapper.newInstance(FIRChartDto.class));
+		 
+		 //Map<String, Object> mapchart = namedJdbcTemplate.queryForMap(queryString, parameter);
+		 return firchartDto;
+	}
+
+	@Override
+	public List<DistrictBean> getDistrict(Integer stateCd, Integer langCd) {
+		String queryString = resourceBundele.getString("get.fir.district");
+		
+		parameter.put("state_cd", stateCd.toString());
+		parameter.put("lang_cd", langCd.toString());
+		
+		List<DistrictBean> result = namedJdbcTemplate.query(queryString, parameter, BeanPropertyRowMapper.newInstance(DistrictBean.class));
+		return result;
+	}
+
+	@Override
+	public Integer getFirCountByDistrict(Integer districtCd, Integer langCd) {
+		String queryString = resourceBundele.getString("get.fir.count.asperdistrict");
+		
+		parameter.put("district_cd", districtCd.toString());
+		parameter.put("lang_cd", langCd.toString());
+		Integer result = namedJdbcTemplate.queryForObject(queryString, parameter, Integer.class);
+		return result;
+	}
+
+	@Override
+	public List<FirStatus> getFirStatus(Integer langCd) {
+		String queryString = resourceBundele.getString("get.fir.status");
+		
+		parameter.put("lang_cd", langCd.toString());
+		List<FirStatus> result = namedJdbcTemplate.query(queryString, parameter, BeanPropertyRowMapper.newInstance(FirStatus.class));
+		return result;
+	}
+
+	@Override
+	public Integer getFirCountByStatus(Integer districtCd, Integer langCd, Integer firStatusCd) {
+		String queryString = resourceBundele.getString("get.fir.status.count");
+		System.out.println("query : "+ queryString);
+		parameter.put("district_cd", districtCd.toString());
+		parameter.put("lang_cd", langCd.toString());
+		parameter.put("fir_status", firStatusCd.toString());
+		Integer result = namedJdbcTemplate.queryForObject(queryString, parameter, Integer.class);
+		return result;
+	}
+
+	@Override
+	public List<PsBean> getPsList(Integer stateCd, Integer districtCd, Integer langCd) {
+		String queryString = resourceBundele.getString("get.fir.psList");
+		
+		parameter.put("state_cd", stateCd.toString());
+		parameter.put("district_cd", districtCd.toString());
+		parameter.put("lang_cd", langCd.toString());
+		
+		List<PsBean> result = namedJdbcTemplate.query(queryString, parameter, BeanPropertyRowMapper.newInstance(PsBean.class));
+		System.out.println(result);
+		return result;
+	}
+
+	@Override
+	public List<StateBean> getStateList(Integer langCd) {
+		String queryString = resourceBundele.getString("get.fir.state");
+		
+		
+		parameter.put("lang_cd", langCd.toString());
+		
+		List<StateBean> result = namedJdbcTemplate.query(queryString, parameter, BeanPropertyRowMapper.newInstance(StateBean.class));
+		System.out.println(result);
+		return result;
+	}
+
+	@Override
+	public Integer getFirCountByDate(Integer stateCd, Integer districtCd, Integer psCd, String startDate,
+			String endDate) {
+		String queryString = resourceBundele.getString("get.fir.count.bydate");
+		 
+		 System.out.println("start date : "+ startDate);
+		 System.out.println("end date : "+ endDate);
+		 parameter.put("state_cd", stateCd.toString());
+		 parameter.put("district_cd", districtCd.toString());
+		 parameter.put("ps_cd", psCd.toString());
+		 parameter.put("startDate", startDate.toString());
+		 parameter.put("endDate", endDate.toString());
+		 System.out.println(stateCd);
+		 System.out.println(districtCd);
+		 System.out.println(psCd);
+		   Integer result = namedJdbcTemplate.queryForObject(queryString, parameter, Integer.class);
+		   System.out.println(result);
+		   
+		   return result;
+	}
+
+	@Override
+	public List<MajorHeadBean> getMajorHeadCode(Integer langCd) {
+		
+		String queryString1 = resourceBundele.getString("gte.fir.majorhead");
+		String queryString2 = resourceBundele.getString("get.fir.majorhead.count");
+		Integer count = null;
+		
+		parameter.put("lang_cd", langCd.toString());
+		
+		List<MajorHeadBean> majorHeadList = namedJdbcTemplate.query(queryString1, parameter, BeanPropertyRowMapper.newInstance(MajorHeadBean.class));
+		
+		
+		for(int i=0; i< majorHeadList.size(); i++) {
+			parameter.put("major_head_cd", majorHeadList.get(i).getMajorHeadCd().toString());
+			count = namedJdbcTemplate.queryForObject(queryString2, parameter, Integer.class);
+			majorHeadList.get(i).setFirCount(count);
+		}
+		
+		return majorHeadList;
+	}
+
+	@Override
+	public Integer getFirTotalCount() {
+		String queryString = resourceBundele.getString("get.total.fir.count");
+		
+		
+		Integer result = namedJdbcTemplate.queryForObject(queryString, parameter, Integer.class);
+		return result;
+	}
+
+	@Override
+	public List<FirDetailsResponse> getFirByMajorHead(Integer stateCd, Integer districtCd, Integer psCd,
+			Integer majorHeadCd) {
+		String queryString = resourceBundele.getString("get.fir.details.major.head");
+		 
+		 
+		 parameter.put("state_cd", stateCd.toString());
+		 parameter.put("district_cd", districtCd.toString());
+		 parameter.put("ps_cd", psCd.toString());
+		 parameter.put("major_head_cd", majorHeadCd.toString());
+		 
+		   List<FirDetailsResponse> result = namedJdbcTemplate.query(queryString, parameter, BeanPropertyRowMapper.newInstance(FirDetailsResponse.class));
+		   System.out.println(result);
+		   
+		   return result;
+		
+	}
+
+	@Override
+	public FirDetailsResponse getFirDetailedDescription(String firRegNum) {
+		String queryString = resourceBundele.getString("get.fir.description");
+		parameter.put("firRegNum", firRegNum);
+		
+		FirDetailsResponse result =  namedJdbcTemplate.queryForObject(queryString, parameter, new FIRDetailsMapper());
+		System.out.println(result);
+		return result;
+	}
+
+	@Override
+	public Integer getIsIIF2Filled(String firRegNum) {
+		String queryString = resourceBundele.getString("getFirStatusIfIIF2Filled");
+		parameter.put("firRegNum", firRegNum);
+		
+		Integer result = namedJdbcTemplate.queryForObject(queryString, parameter, Integer.class);
+		System.out.println(result);
+		return result;
+	}
+
+	@Override
+	public Integer getIsIIF3Filled(String firRegNum) {
+		String queryString = resourceBundele.getString("getFirStatusIfIIF3Filled");
+		parameter.put("firRegNum", firRegNum);
+		
+		Integer result = namedJdbcTemplate.queryForObject(queryString, parameter, Integer.class);
+		System.out.println(result);
+		return result;
+	}
+
+	@Override
+	public Integer getIsIIF4Filled(String firRegNum) {
+		String queryString = resourceBundele.getString("getFirStatusIfIIF4Filled");
+		parameter.put("firRegNum", firRegNum);
+		
+		Integer result = namedJdbcTemplate.queryForObject(queryString, parameter, Integer.class);
+		System.out.println(result);
+		return result;
+	}
+
+	@Override
+	public String saveCasLoggedInUserDetails(User loggedInUser) {
+		String queryString = resourceBundele.getString("inCasLoggedInUserData");
+		String isUserExistQueryString = resourceBundele.getString("getLoggedInUserDataCount");
+		String updateRecordStatus = resourceBundele.getString("updateRecordStatus");
+		parameter.put("username", loggedInUser.getUsername());
+		parameter.put("officeCd", loggedInUser.getOfficeCd().toString());
+		parameter.put("stateCd", loggedInUser.getStateCd().toString());
+		parameter.put("districtCd", loggedInUser.getDistrictCd().toString());
+		parameter.put("psCd", loggedInUser.getPsCd().toString());
+		parameter.put("langCd", loggedInUser.getLangCd().toString());
+		parameter.put("recordStatus", "C");
+		
+		
+		
+		int userCount = namedJdbcTemplate.queryForObject(isUserExistQueryString, parameter, Integer.class);
+		
+		if(userCount >0) {
+			namedJdbcTemplate.update(updateRecordStatus, parameter);
+		}
+			 
+		int isDataSaved = namedJdbcTemplate.update(queryString, parameter);
+			
+
+		if(isDataSaved==1) {
+			return "data saved successfully !!";
+		}else {
+			return "error saving data";
+		}
+		
+		
+		
+	}
+
+	@Override
+	public User getLoggedInUserDetails() {
+		String queryString = resourceBundele.getString("LoggedInUserDetails");
+		
+		User result =  namedJdbcTemplate.queryForObject(queryString, parameter, new UserRowMapper());
+		return result;
+	}
+	
+	
+	
+	
+	
+	
+
+}
